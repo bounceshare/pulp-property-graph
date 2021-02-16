@@ -14,13 +14,20 @@
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.2",
     "typescript": "^4.1.2",
-    "web-vitals": "^1.0.1"
+    "web-vitals": "^1.0.1",
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/data-grid": "^4.0.0-alpha.19",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.57",
+    "react-draggable": "^4.4.3",
+    "axios": "^0.21.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "run-chrome-no-websecurity": "open -n -a /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --args --user-data-dir=\"/tmp/chrome_dev_test\" --disable-web-security"
   },
   "eslintConfig": {
     "extends": [
