@@ -1,19 +1,17 @@
 import React from "react";
 import {Network} from "./network";
 import {API} from "./constants/api";
-import {makeStyles} from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import Button from "@material-ui/core/Button";
+
 import TableView from "./components/Table";
-import ModalView from "./components/Modal";
+import ModalAddConfig from "./components/ModalAddConfig";
+import ModalAddNamespace from "./components/ModalAddNamespace";
 import AutoCompleteMultiDropdown from "./components/AutoCompleteMultiDropdown";
 import AddIcon from "@material-ui/icons/Add";
 import Box from "@material-ui/core/Box";
 import NextStep from "./components/NextSteps";
+import {AppBar, Button, IconButton, makeStyles, Toolbar, Typography} from "@material-ui/core";
+import MenuIcon from "@material-ui/icons/Menu";
+import {isObjectEmpty} from "./utils/is_empty";
 
 const App = () => {
   const classes = useStyles();
@@ -37,6 +35,14 @@ const App = () => {
   const [openEdit, setOpenEdit] = React.useState(false);
   const [activeProperty, setActiveProperty] = React.useState({});
 
+  /// Add Namespace
+  const [openNamespace, setOpenNamespace] = React.useState(false);
+  const handleClickOpenNamespace = (property: any) => {
+    setOpenNamespace(true);
+  };
+  const handleCloseNamespace = () => {
+    setOpenNamespace(false);
+  };
   const handleClickOpenEdit = (property: any) => {
     setActiveProperty(property);
     setOpenEdit(true);
@@ -76,17 +82,7 @@ const App = () => {
 
   ///GET NAMESPACE
   React.useEffect(() => {
-    if (nodeType && nodeId?.length > 0) {
-      Network.post(API.NAMESPACE, {
-        nodeType: nodeType,
-        nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId]
-      }).then((response: any) => {
-        setNamespaces(response?.data?.data);
-        setNamespace("");
-        setActiveStep(2);
-        setCompleted(1);
-      });
-    }
+    fetchNamespace();
   }, [nodeId]);
 
   ///GET PROPERTIES
@@ -98,6 +94,21 @@ const App = () => {
             setCompleted(3);
           }
       );
+    }
+  };
+
+  ///GET PROPERTIES
+  const fetchNamespace = () => {
+    if (nodeType && nodeId?.length > 0) {
+      Network.post(API.NAMESPACE, {
+        nodeType: nodeType,
+        nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId]
+      }).then((response: any) => {
+        setNamespaces(response?.data?.data);
+        setNamespace("");
+        setActiveStep(2);
+        setCompleted(1);
+      });
     }
   };
   React.useEffect(() => {
@@ -136,7 +147,7 @@ const App = () => {
           </Toolbar>
         </AppBar>
         <Box display="flex" justifyContent="center">
-          <div style={{width: "50%", marginTop: 16}}>
+          <div style={{width: "80%", marginTop: 16}}>
             <NextStep
                 activeStep={activeStep}
                 setActiveStep={setActiveStep}
@@ -167,52 +178,112 @@ const App = () => {
                 setValue={setNamespace}
             />
           </Box>
-          {tableData && tableData.length > 0 && (
-              <Box
-                  display="flex"
-                  justifyContent="flex-end"
-                  style={{marginTop: 24}}
+        </div>
+
+        {nodeType && nodeId.length > 0 && (
+            <Box
+                display="flex"
+                justifyContent="flex-end"
+                style={{marginTop: 24, marginLeft: 24}}
+            >
+              {namespace && (
+                  <Button
+                      variant="outlined"
+                      color="primary"
+                      className={classes.button}
+                      startIcon={<AddIcon/>}
+                      onClick={() => handleClickOpenEdit(null)}
+                  >
+                    Add Property
+                  </Button>
+              )}
+              <Button
+                  variant="outlined"
+                  color="primary"
+                  className={classes.button}
+                  startIcon={<AddIcon/>}
+                  onClick={() => setOpenNamespace(!openNamespace)}
+                  style={{marginRight: 24}}
               >
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    className={classes.button}
-                    startIcon={<AddIcon/>}
-                    onClick={() => handleClickOpenEdit(null)}
-                >
-                  Add Property
-                </Button>
-              </Box>
-          )}
-          {tableData && tableData.length > 0 && (
+                Add Namespace
+              </Button>
+            </Box>
+        )}
+        {tableData && tableData.length > 0 && (
+            <div style={{padding: 24}}>
               <TableView
                   onEdit={(property: any) => {
                     handleClickOpenEdit(property);
                   }}
                   rows={tableData}
+                  onDelete={(listOfProperty: any) => {
+                    // console.warn("**** Deleting ****", listOfProperty);
+                    let properties: any = {};
+                    listOfProperty.forEach(
+                        (property: { name: string; property_value: any }) => {
+                          properties[property.name] = property.property_value;
+                        }
+                    );
+                    Network.post(API.MODIFY, {
+                      isDelete: true,
+                      namespace,
+                      nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId],
+                      nodeType,
+                      properties
+                    }).then((response: any) => {
+                      if (response.status === 200) {
+                        fetchProperties();
+                      }
+                    });
+                  }}
               />
-          )}
-          <ModalView
-              property={activeProperty}
-              open={openEdit}
-              handleClickOpen={handleClickOpenEdit}
-              handleClose={handleCloseEdit}
-              onSave={(value: { name: string; property_value: any }) => {
-                let config: any = {};
-                config[value.name] = value.property_value;
-                Network.post(API.ADD_UPDATE_CONFIG, {
-                  namespace: namespace,
-                  nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId],
-                  nodeType: nodeType,
-                  properties: config
-                }).then((response: any) => {
-                  if (response.status === 200) {
-                    //fetchProperties();
-                  }
-                });
-              }}
-          />
-        </div>
+            </div>
+        )}
+        {!isObjectEmpty(activeProperty) && (
+            <ModalAddConfig
+                title={activeProperty ? "Update Property" : "Add New Property"}
+                hint={"Property Key"}
+                hint2={"Property Value"}
+                property={activeProperty}
+                open={openEdit}
+                handleClickOpen={handleClickOpenEdit}
+                handleClose={handleCloseEdit}
+                onSave={(value: { name: string; property_value: any }) => {
+                  let config: any = {};
+                  config[value.name] = value.property_value;
+                  Network.post(API.MODIFY, {
+                    namespace: namespace,
+                    nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId],
+                    nodeType: nodeType,
+                    properties: config
+                  }).then((response: any) => {
+                    if (response?.status === 200) {
+                      fetchProperties();
+                    }
+                  });
+                }}
+            />
+        )}
+        {openNamespace && (
+            <ModalAddNamespace
+                title={"Add New Namespace"}
+                hint={"Type Namespace"}
+                open={openNamespace}
+                handleClickOpen={handleClickOpenNamespace}
+                handleClose={handleCloseNamespace}
+                onSave={(value: any) => {
+                  Network.post(API.NAMESPACE_ADD, {
+                    namespace: value,
+                    nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId],
+                    nodeType: nodeType
+                  }).then((response: any) => {
+                    if (response?.status === 200) {
+                      fetchNamespace();
+                    }
+                  });
+                }}
+            />
+        )}
       </div>
   );
 };

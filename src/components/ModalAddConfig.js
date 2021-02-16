@@ -8,6 +8,7 @@ import Paper from "@material-ui/core/Paper";
 import Draggable from "react-draggable";
 import TextInput from "./TextInput";
 import Box from "@material-ui/core/Box";
+import {handleJSON, handleStringify} from "../utils/json_util";
 
 function PaperComponent(props) {
   return (
@@ -23,7 +24,6 @@ function PaperComponent(props) {
 export default function DraggableDialog(props) {
   const [value, setValue] = React.useState("");
   const [propertyName, setPropertyName] = React.useState(props?.property?.name);
-
   return (
       <div>
         <Dialog
@@ -34,12 +34,12 @@ export default function DraggableDialog(props) {
             fullWidth={true}
         >
           <DialogTitle style={{cursor: "move"}} id="draggable-dialog-title">
-            {propertyName ? "Update Config" : "Add New Config"}
+            {props?.title}
           </DialogTitle>
           <DialogContent>
             <Box display="flex" flexWrap="wrap" justifyContent="flex-start">
               <TextInput
-                  label={"Property Key"}
+                  label={props?.hint}
                   value={props.property?.name}
                   onChange={text => {
                     setPropertyName(text);
@@ -47,16 +47,10 @@ export default function DraggableDialog(props) {
               />
               <div style={{width: 24}}/>
               <TextInput
-                  multiLine
-                  label={"Property Value"}
-                  value={JSON.parse(props?.property?.property_value)}
+                  label={props?.hint2}
+                  value={handleStringify(props?.property?.property_value)}
                   onChange={setValue}
               />
-              {/*<TextArea*/}
-              {/*  multiline*/}
-              {/*  value={props?.property?.property_value}*/}
-              {/*  onChange={setValue}*/}
-              {/*/>*/}
             </Box>
           </DialogContent>
           <DialogActions>
@@ -68,7 +62,7 @@ export default function DraggableDialog(props) {
                   if ((propertyName || props?.property?.name) && value) {
                     props.onSave({
                       name: propertyName ?? props?.property?.name,
-                      property_value: value
+                      property_value: handleJSON(value)
                     });
                     props.handleClose();
                   }

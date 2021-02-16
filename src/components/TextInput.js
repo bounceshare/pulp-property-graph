@@ -8,17 +8,10 @@ export default function TextInput(props) {
     return (
         <div>
             <TextField
-                // error={!!!props.value}
-                multiLine={!!props?.multiLine}
-                id="standard-error-helper-text"
                 variant={"outlined"}
                 label={props.label}
                 defaultValue={props.value}
-                helperText={
-                    props.value
-                        ? "Default: " + props.value
-                        : "Example: notification_enabled"
-                }
+                helperText={props.value}
                 onChange={handleChange}
                 style={props?.style}
                 fullWidth={true}
