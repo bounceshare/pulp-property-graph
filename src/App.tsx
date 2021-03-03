@@ -55,14 +55,13 @@ const App = () => {
   React.useEffect(() => {
     Network.get(API.NODE_TYPE).then((response: any) => {
       setNodeTypes(response.data.data);
-
-      //reset other
-      setNodeId("");
-      setNodeIds([]);
-      setNamespace("");
-      setNamespaces([]);
-      setActiveStep(0);
     });
+    //reset other
+    setNodeId("");
+    setNodeIds([]);
+    setNamespace("");
+    setNamespaces([]);
+    setActiveStep(0);
   }, []);
 
   ///GET Node IDs
@@ -70,14 +69,13 @@ const App = () => {
     if (nodeType)
       Network.get(API.NODE_IDS(nodeType)).then((response: any) => {
         setNodeIds(response.data.data);
-
-        //reset other
-        setNodeId("");
-        setNamespace("");
-        setNamespaces([]);
-        setActiveStep(1);
-        setCompleted(0);
       });
+    //reset other
+    setNodeId("");
+    setNamespace("");
+    setNamespaces([]);
+    setActiveStep(1);
+    setCompleted(0);
   }, [nodeType]);
 
   ///GET NAMESPACE
@@ -105,11 +103,11 @@ const App = () => {
         nodeIds: Array.isArray(nodeId) ? nodeId : [nodeId]
       }).then((response: any) => {
         setNamespaces(response?.data?.data);
-        setNamespace("");
-        setActiveStep(2);
-        setCompleted(1);
       });
     }
+    setNamespace("");
+    setActiveStep(2);
+    setCompleted(1);
   };
   React.useEffect(() => {
     fetchProperties();
@@ -180,7 +178,7 @@ const App = () => {
           </Box>
         </div>
 
-        {nodeType && nodeId.length > 0 && (
+        {nodeType && nodeId?.length > 0 && (
             <Box
                 display="flex"
                 justifyContent="flex-end"
@@ -209,7 +207,7 @@ const App = () => {
               </Button>
             </Box>
         )}
-        {tableData && tableData.length > 0 && (
+        {tableData && tableData?.length > 0 && (
             <div style={{padding: 24}}>
               <TableView
                   onEdit={(property: any) => {
